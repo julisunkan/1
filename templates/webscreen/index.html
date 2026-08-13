@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Screenshot — DevTools</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/web.css">
+  <style>
+    :root{--bg:#050e03;--surface:#091406;--border:#0f2209;--text:#d9f99d;--text-muted:#3a5c28;--accent:#84cc16;--accent-glow:rgba(132,204,22,0.08);--btn-text:#000;--input-bg:#030a02;--nav-bg:#040b02;}
+    body{background:var(--bg);color:var(--text);}
+    .layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 60px);}
+    .control-panel{background:var(--nav-bg);border-right:1px solid var(--border);padding:24px;display:flex;flex-direction:column;gap:0;}
+    .gallery-panel{padding:28px;overflow-y:auto;}
+    input,select{background:var(--input-bg);border-color:var(--border);}
+    .preset-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);transition:all .15s;margin:2px;}
+    .preset-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .shot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+    .shot-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;}
+    .shot-card:hover{transform:translateY(-3px);border-color:var(--accent);}
+    .shot-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--bg);}
+    .shot-info{padding:10px 12px;}
+    .shot-url{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .shot-date{font-size:10px;color:var(--text-muted);margin-top:2px;}
+    .result-preview{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:20px;}
+    .result-preview img{width:100%;display:block;}
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+    .lightbox.open{display:flex;}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.control-panel{border-right:none;border-bottom:1px solid var(--border);}}
+    .url-error{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.15)!important;}
+    .inline-msg{display:none;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-top:12px;}
+    .inline-msg.error{background:#020d02;border:1px solid rgba(239,68,68,0.4);color:#f87171;}
+    .inline-msg.success{background:#071407;border:1px solid rgba(132,204,22,0.4);color:#a3e635;}
+    .inline-msg.warn{background:#060f03;border:1px solid rgba(234,179,8,0.4);color:#fde047;}
+    .inline-msg i{flex-shrink:0;}
+    .inline-msg-close{margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;opacity:0.6;padding:0;font-size:12px;}
+    .inline-msg-close:hover{opacity:1;}
+  </style>
+</head>
+<body>
+<nav class="topnav" style="background:var(--nav-bg);border-bottom:1px solid var(--border);">
+  <div class="topnav-brand" style="color:var(--accent);">
+    <i class="fas fa-camera"></i> Web Screenshot
+  </div>
+  <div class="topnav-spacer"></div>
+  <span style="font-size:12px;color:var(--text-muted);">Powered by wkhtmltoimage</span>
+</nav>
+
+<div class="layout">
+  <!-- Control Panel -->
+  <aside class="control-panel">
+    <div class="section-label" style="--accent:#84cc16;"><i class="fas fa-link"></i> Target URL</div>
+    <div class="field">
+      <label>Website Address</label>
+      <input type="url" id="urlInput" placeholder="https://example.com">
+    </div>
+
+    <div class="section-label" style="margin-top:8px;"><i class="fas fa-expand"></i> Viewport</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field"><label>Width (px)</label><input type="number" id="widthInput" value="1280" min="320"></div>
+      <div class="field"><label>Height (px)</label><input type="number" id="heightInput" value="800" min="240"></div>
+    </div>
+    <div style="margin-bottom:16px;">
+      {% for label,w,h in [('Mobile 375',375,812),('Tablet 768',768,1024),('Laptop',1280,800),('1440p',1440,900),('4K',3840,2160)] %}
+      <button class="preset-btn" onclick="setPreset({{w}},{{h}})"><i class="fas fa-{% if w < 500 %}mobile-alt{% elif w < 1000 %}tablet-alt{% else %}desktop{% endif %}"></i> {{label}}</button>
+      {% endfor %}
+    </div>
+
+    <div id="inlineMsg" class="inline-msg"></div>
+    <button class="btn btn-primary btn-full btn-lg" id="captureBtn" onclick="capture()" style="margin-top:auto;">
+      <i class="fas fa-camera"></i> Capture Screenshot
+    </button>
+
+    <div id="resultBox" style="display:none;margin-top:16px;">
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <img id="resultImg" style="width:100%;display:block;" alt="Screenshot">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <a id="dlLink" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;text-decoration:none;"><i class="fas fa-download"></i> Download</a>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('resultImg').click()"><i class="fas fa-expand"></i></button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px;text-align:center;" id="resultMeta"></div>
+    </div>
+  </aside>
+
+  <!-- Gallery -->
+  <main class="gallery-panel">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <h2 style="font-size:22px;font-weight:800;">Screenshot Gallery</h2>
+      {% if shots %}<span style="background:var(--surface);border:1px solid var(--border);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-muted);">{{ shots|length }} captures</span>{% endif %}
+    </div>
+
+    {% if shots %}
+    <div class="shot-grid">
+      {% for shot in shots %}
+      <div class="shot-card" onclick="openLightbox('/static/screenshots/{{ shot.filename }}','{{ shot.url }}','/webscreen/download/{{ shot.filename }}')">
+        <img src="/static/screenshots/{{ shot.filename }}" alt="{{ shot.url }}" loading="lazy">
+        <div class="shot-info">
+          <div class="shot-url" title="{{ shot.url }}">{{ shot.url }}</div>
+          <div class="shot-date">{{ shot.created_at.strftime('%b %d, %Y · %H:%M') }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:80px 0;color:var(--text-muted);">
+      <i class="fas fa-images" style="font-size:64px;display:block;margin-bottom:20px;opacity:0.12;"></i>
+      <p style="font-size:18px;font-weight:600;">No screenshots yet</p>
+      <p style="font-size:13px;margin-top:8px;opacity:0.6;">Capture your first screenshot using the panel on the left</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLB()">
+  <div style="position:absolute;top:20px;right:24px;display:flex;gap:10px;" onclick="event.stopPropagation()">
+    <a id="lbDl" class="btn btn-primary btn-sm" download><i class="fas fa-download"></i> Download</a>
+    <button class="btn btn-ghost btn-sm" onclick="closeLB()"><i class="fas fa-times"></i></button>
+  </div>
+  <div style="font-size:12px;color:#aaa;position:absolute;top:60px;left:50%;transform:translateX(-50%);" id="lbUrl"></div>
+  <img id="lbImg" style="max-width:90vw;max-height:80vh;border-radius:8px;box-shadow:0 20px 80px rgba(0,0,0,0.8);" alt="" onclick="event.stopPropagation()">
+</div>
+
+<script>
+function showMsg(msg, type='error') {
+  const icons = {error:'fa-circle-xmark', success:'fa-circle-check', warn:'fa-triangle-exclamation'};
+  const el = document.getElementById('inlineMsg');
+  el.className = `inline-msg ${type}`;
+  el.innerHTML = `<i class="fas ${icons[type]||icons.error}"></i><span>${msg}</span><button class="inline-msg-close" onclick="this.parentElement.style.display='none'"><i class="fas fa-times"></i></button>`;
+  el.style.display = 'flex';
+  if (el._timer) clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function setPreset(w,h){document.getElementById('widthInput').value=w;document.getElementById('heightInput').value=h;}
+async function capture(){
+  const urlEl=document.getElementById('urlInput');
+  let url=urlEl.value.trim();
+  if(!url){
+    urlEl.classList.add('url-error');
+    urlEl.focus();
+    urlEl.addEventListener('input',()=>urlEl.classList.remove('url-error'),{once:true});
+    showMsg('Please enter a website URL first','warn');
+    return;
+  }
+  const btn=document.getElementById('captureBtn');
+  btn.innerHTML='<span class="spinner"></span> Capturing…';btn.disabled=true;
+  try{
+    const r=await fetch('/webscreen/capture',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,width:document.getElementById('widthInput').value,height:document.getElementById('heightInput').value})});
+    const d=await r.json();
+    if(d.error){showMsg(d.error,'error');return;}
+    document.getElementById('resultImg').src=d.url+'?t='+Date.now();
+    document.getElementById('dlLink').href='/webscreen/download/'+d.filename;
+    document.getElementById('dlLink').download=d.filename;
+    document.getElementById('resultMeta').textContent=url;
+    document.getElementById('resultBox').style.display='block';
+    showMsg('Screenshot captured!','success');
+    setTimeout(()=>window.location.reload(),1800);
+  }catch(e){showMsg(e.message,'error');}
+  finally{btn.innerHTML='<i class="fas fa-camera"></i> Capture Screenshot';btn.disabled=false;}
+}
+function openLightbox(src,url,dl){
+  document.getElementById('lbImg').src=src;
+  document.getElementById('lbUrl').textContent=url;
+  document.getElementById('lbDl').href=dl;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLB(){document.getElementById('lightbox').classList.remove('open');}
+document.getElementById('urlInput').addEventListener('keypress',e=>{if(e.key==='Enter')capture();});
+</script>
+</body>
+</html>

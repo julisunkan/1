@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — DevTools</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/web.css">
+  <style>
+    :root{--bg:#0c0a00;--surface:#1a1600;--border:#2e2700;--text:#fef9c3;--text-muted:#7a6a10;--accent:#ca8a04;--accent-glow:rgba(202,138,4,0.1);--btn-text:#000;--input-bg:#100e00;--nav-bg:#0c0a00;}
+    body{background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;}
+    .login-box{width:100%;max-width:400px;padding:20px;}
+    .logo{font-size:28px;font-weight:900;letter-spacing:-0.04em;margin-bottom:8px;}
+    .logo span{color:var(--accent);}
+    input{background:var(--input-bg);border-color:var(--border);}
+    input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  </style>
+</head>
+<body>
+<div class="login-box">
+  <div class="logo">Dev<span>Tools</span></div>
+  <p style="color:var(--text-muted);font-size:13px;margin-bottom:32px;">Admin Panel — restricted access</p>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;">
+    <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;background:rgba(202,138,4,0.1);border:1px solid rgba(202,138,4,0.2);border-radius:14px;margin:0 auto 24px;">
+      <i class="fas fa-shield-alt" style="font-size:24px;color:var(--accent);"></i>
+    </div>
+    <h2 style="font-size:20px;font-weight:800;text-align:center;margin-bottom:4px;">Admin Access</h2>
+    <p style="font-size:13px;color:var(--text-muted);text-align:center;margin-bottom:24px;">Enter your password to continue</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="alert alert-error" style="margin-bottom:16px;"><i class="fas fa-exclamation-circle"></i> {{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="field">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter admin password" autofocus>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Default password: <code style="color:var(--accent);">admin123</code></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
+        <i class="fas fa-unlock"></i> Login to Admin Panel
+      </button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

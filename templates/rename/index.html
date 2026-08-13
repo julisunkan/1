@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Renamer — DevTools</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/web.css">
+  <style>
+    :root {
+      --bg: #0d0800; --surface: #1a1000; --border: #2e1f00;
+      --text: #fde68a; --text-muted: #8a6a20;
+      --accent: #f59e0b; --accent-glow: rgba(245,158,11,0.1);
+      --btn-text: #000; --input-bg: #120c00; --code-bg: #0a0600;
+      --nav-bg: #0f0a00;
+    }
+    body { background: var(--bg); color: var(--text); }
+    .topnav { background: var(--nav-bg); border-bottom-color: var(--border); }
+    h1 em { color: var(--accent); font-style: normal; }
+    .layout { display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: calc(100vh - 60px); }
+    .sidebar { background: var(--nav-bg); border-right: 1px solid var(--border); padding: 28px 24px; overflow-y: auto; }
+    .main { padding: 28px 32px; overflow-y: auto; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--accent); padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{border-right:none;border-bottom:1px solid var(--border)}}
+    .inline-msg{display:none;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-top:12px;}
+    .inline-msg.error{background:#1a0505;border:1px solid rgba(239,68,68,0.4);color:#f87171;}
+    .inline-msg.success{background:#051a0a;border:1px solid rgba(34,197,94,0.4);color:#4ade80;}
+    .inline-msg.warn{background:#1a1000;border:1px solid rgba(245,158,11,0.4);color:#fbbf24;}
+    .inline-msg i{flex-shrink:0;}
+    .inline-msg-close{margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;opacity:0.6;padding:0;font-size:12px;}
+    .inline-msg-close:hover{opacity:1;}
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="topnav-brand" style="color:var(--accent);">
+    <i class="fas fa-tags"></i> File Renamer
+  </div>
+  <div class="topnav-spacer"></div>
+  <span class="tag">ZIP → Rename → Download</span>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar: Upload + Rules -->
+  <aside class="sidebar">
+    <div class="section-label"><i class="fas fa-cloud-upload-alt"></i> Upload</div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('zipInput').click()">
+      <i class="fas fa-file-archive" style="color:var(--accent);"></i>
+      <h3 id="uploadLabel">Drop ZIP file here</h3>
+      <p>or click to browse · Max 50MB</p>
+    </div>
+    <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="handleFile(this)">
+
+    <div class="section-label" style="margin-top:24px;"><i class="fas fa-sliders-h"></i> Rules</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+      {% for rtype, label in [('prefix','+ Prefix'),('suffix','+ Suffix'),('replace','Find & Replace'),('lowercase','Lowercase'),('uppercase','Uppercase'),('spaces_to_underscores','Spaces→_'),('remove_special','Clean Special'),('numbering','Auto-Number')] %}
+      <button class="chip chip-sm" onclick="addRule('{{ rtype }}')">{{ label }}</button>
+      {% endfor %}
+    </div>
+
+    <div id="rulesList"></div>
+
+    <div id="inlineMsg" class="inline-msg"></div>
+    <button class="btn btn-primary btn-full btn-lg" id="renameBtn" onclick="processRename()" disabled style="margin-top:16px;">
+      <i class="fas fa-bolt"></i> Apply & Download ZIP
+    </button>
+  </aside>
+
+  <!-- Main: Preview -->
+  <main class="main">
+    <div class="page-header">
+      <h1><em>Batch</em> File Renamer</h1>
+      <p>Upload a ZIP, define rename rules in order, and download the renamed files as a new ZIP.</p>
+    </div>
+
+    <div id="emptyState" style="text-align:center;padding:80px 0;color:var(--text-muted);">
+      <i class="fas fa-folder-open" style="font-size:56px;display:block;margin-bottom:16px;opacity:0.3;"></i>
+      <p style="font-size:16px;">Upload a ZIP file and add rules to get started</p>
+    </div>
+
+    <div id="resultArea" style="display:none;">
+      <div class="toolbar">
+        <span style="font-size:13px;font-weight:700;color:var(--accent);" id="resultCount"></span>
+        <div style="flex:1;"></div>
+        <button class="btn btn-ghost btn-sm" id="dlBtn" onclick="">
+          <i class="fas fa-download"></i> Download Again
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Original Name</th><th>Renamed To</th></tr></thead>
+          <tbody id="resultTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    {% if jobs %}
+    <div style="margin-top:40px;">
+      <div class="section-label"><i class="fas fa-history"></i> Recent Jobs</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Original</th><th>Renamed</th><th>Date</th></tr></thead>
+          <tbody>
+          {% for job in jobs %}
+          <tr>
+            <td style="color:var(--text-muted);">{{ job.original_name }}</td>
+            <td style="color:var(--accent);font-weight:600;">{{ job.renamed_to }}</td>
+            <td style="color:var(--text-muted);font-size:12px;">{{ job.created_at.strftime('%b %d, %H:%M') }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+{% block scripts %}{% endblock %}
+<script>
+function showMsg(msg, type='error') {
+  const icons = {error:'fa-circle-xmark', success:'fa-circle-check', warn:'fa-triangle-exclamation'};
+  const el = document.getElementById('inlineMsg');
+  el.className = `inline-msg ${type}`;
+  el.innerHTML = `<i class="fas ${icons[type]||icons.error}"></i><span>${msg}</span><button class="inline-msg-close" onclick="this.parentElement.style.display='none'"><i class="fas fa-times"></i></button>`;
+  el.style.display = 'flex';
+  if (el._timer) clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+let rules = [], selectedFile = null, dlUrl = '';
+const ruleConfigs = {
+  prefix:   { label:'Prefix',          fields:[{n:'value',ph:'e.g. 2024_'}] },
+  suffix:   { label:'Suffix',          fields:[{n:'value',ph:'e.g. _final'}] },
+  replace:  { label:'Find & Replace',  fields:[{n:'value',ph:'Find…'},{n:'replace_with',ph:'Replace with…'}] },
+  lowercase:{ label:'Lowercase',       fields:[] },
+  uppercase:{ label:'Uppercase',       fields:[] },
+  spaces_to_underscores:{ label:'Spaces → _', fields:[] },
+  remove_special:{ label:'Clean Special',fields:[] },
+  numbering:{ label:'Auto-Number',     fields:[] },
+};
+
+function handleFile(input) {
+  selectedFile = input.files[0];
+  if (!selectedFile) return;
+  document.getElementById('uploadLabel').textContent = '📦 ' + selectedFile.name;
+  document.getElementById('uploadZone').style.borderColor = 'var(--accent)';
+  document.getElementById('renameBtn').disabled = false;
+}
+
+function addRule(type) {
+  const id = Date.now();
+  const cfg = ruleConfigs[type];
+  rules.push({ id, type, value:'', replace_with:'' });
+  const div = document.createElement('div');
+  div.className = 'rule-item'; div.id = 'rule_'+id;
+  div.innerHTML = `<span class="rule-label">${cfg.label}</span>
+    <div class="rule-inputs">${cfg.fields.map(f=>`<input placeholder="${f.ph}" onchange="updateRule(${id},'${f.n}',this.value)" style="background:var(--input-bg);">`).join('')}</div>
+    <button class="btn btn-danger btn-icon btn-sm" onclick="removeRule(${id})"><i class="fas fa-times"></i></button>`;
+  document.getElementById('rulesList').appendChild(div);
+}
+function updateRule(id,f,v){const r=rules.find(r=>r.id===id);if(r)r[f]=v;}
+function removeRule(id){rules=rules.filter(r=>r.id!==id);document.getElementById('rule_'+id)?.remove();}
+
+async function processRename() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('renameBtn');
+  btn.innerHTML = '<span class="spinner"></span> Processing…';
+  btn.disabled = true;
+  const fd = new FormData();
+  fd.append('zipfile', selectedFile);
+  fd.append('rules', JSON.stringify(rules));
+  try {
+    const res = await fetch('/rename/process', {method:'POST',body:fd});
+    const data = await res.json();
+    if (data.error) { showMsg(data.error, 'error'); return; }
+    dlUrl = data.download_url;
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('resultArea').style.display = 'block';
+    document.getElementById('resultCount').textContent = `${data.renamed.length} files renamed`;
+    document.getElementById('dlBtn').onclick = () => window.location.href = dlUrl;
+    const tbody = document.getElementById('resultTable');
+    tbody.innerHTML = data.renamed.map((r,i)=>`<tr>
+      <td style="color:var(--text-muted);width:40px;">${i+1}</td>
+      <td style="color:var(--text-muted);">${r.original}</td>
+      <td style="color:var(--accent);font-weight:600;">${r.renamed}</td>
+    </tr>`).join('');
+    showMsg(`${data.renamed.length} files renamed — downloading…`, 'success');
+    window.location.href = dlUrl;
+  } catch(e) { showMsg(e.message, 'error'); }
+  finally { btn.innerHTML='<i class="fas fa-bolt"></i> Apply & Download ZIP'; btn.disabled=false; }
+}
+
+// Drag and drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('drag-over');});
+zone.addEventListener('dragleave', ()=>zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e=>{e.preventDefault();zone.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.zip')){selectedFile=f;document.getElementById('uploadLabel').textContent='📦 '+f.name;zone.style.borderColor='var(--accent)';document.getElementById('renameBtn').disabled=false;}else{showMsg('Please drop a .zip file','warn');}});
+</script>
+</body>
+</html>

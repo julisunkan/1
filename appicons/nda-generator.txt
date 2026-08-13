@@ -1,0 +1,19 @@
+APP: NDA Generator
+ROUTE: /ndagen
+
+DESCRIPTION:
+NDA Generator is an AI-powered legal document tool that drafts professional, jurisdiction-aware Non-Disclosure Agreements in seconds. Enter the parties, purpose, duration, and jurisdiction — and receive a legally sound NDA ready for review and e-signature. Sign digitally, download as a polished PDF, and store all agreements in one place.
+
+FEATURES:
+- AI-generated NDA content tailored to your specific use case
+- Jurisdiction-aware clauses (customizable by country/state)
+- Configurable disclosure duration and agreement scope
+- Built-in e-signature support for both disclosing and receiving parties
+- Signature pad with touch and mouse support
+- One-click PDF download with embedded signatures and wax-seal styling
+- Signed agreement history with searchable saved NDAs
+- "Fully Executed" banner automatically applied after both parties sign
+- Secure document storage with unique document IDs
+
+KEYWORDS:
+NDA generator, non-disclosure agreement, AI legal document, e-signature NDA, digital NDA, legal document generator, confidentiality agreement, NDA template, sign NDA online, PDF NDA, AI contract, legal tool, developer tool, business agreement, document automation

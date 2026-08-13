@@ -1,0 +1,18 @@
+APP: File Renamer
+ROUTE: /rename
+
+DESCRIPTION:
+File Renamer is a smart batch file-renaming tool that lets you rename multiple files at once using customizable patterns, numbering sequences, case transformations, and text replacements. Eliminate tedious manual renaming and keep your file system organized in seconds — no scripting knowledge required.
+
+FEATURES:
+- Batch rename multiple files simultaneously
+- Pattern-based renaming with custom prefix and suffix support
+- Auto-numbering and sequential indexing
+- Case transformation (uppercase, lowercase, title case)
+- Find-and-replace within filenames
+- Preview changes before applying
+- Supports all common file types and extensions
+- Instant rename with undo-safe history logging
+
+KEYWORDS:
+file renamer, batch rename, bulk rename files, rename tool, file organizer, file manager, auto rename, pattern rename, sequential rename, file utility, productivity tool, developer tool, file naming, mass rename, file cleanup

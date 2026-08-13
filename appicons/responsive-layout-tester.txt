@@ -1,0 +1,18 @@
+APP: Responsive Layout Tester
+ROUTE: /reslayout
+
+DESCRIPTION:
+Responsive Layout Tester lets you preview any website across multiple device viewports simultaneously — desktop, tablet, and mobile — without leaving your browser. Instantly spot layout breaks, overflow issues, and design inconsistencies across screen sizes. A must-have tool for frontend developers and UI/UX designers.
+
+FEATURES:
+- Side-by-side preview across desktop, tablet, and mobile viewports
+- Enter any public URL and render it instantly inside the tool
+- Server-side proxy strips X-Frame-Options and CSP headers for full compatibility
+- Accurate viewport simulation with precise pixel dimensions
+- Custom viewport width input for edge-case testing
+- Detects and highlights overflow and clipping issues
+- Live reload — update the URL and preview refreshes immediately
+- No browser extensions or plugins required
+
+KEYWORDS:
+responsive layout tester, responsive design checker, mobile preview, viewport tester, website preview, screen size tester, frontend tool, UI tester, breakpoint checker, cross-device preview, mobile friendly test, web design tool, developer tool, responsive web design, CSS debugging

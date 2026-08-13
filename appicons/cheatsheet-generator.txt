@@ -1,0 +1,18 @@
+APP: Cheatsheet Generator
+ROUTE: /programcheat
+
+DESCRIPTION:
+Cheatsheet Generator uses AI to instantly create comprehensive, well-structured programming cheat sheets for any language, framework, library, or concept. Whether you are a student cramming syntax or a professional needing a quick reference, get a clean, printable cheat sheet in seconds — powered by Groq AI.
+
+FEATURES:
+- AI-powered cheat sheet generation for any programming topic
+- Supports all major languages: Python, JavaScript, Rust, Go, C++, SQL, and more
+- Covers frameworks and libraries (React, Django, FastAPI, etc.)
+- Structured output with sections, code snippets, and examples
+- Instant generation with Groq LLaMA inference
+- Copy-to-clipboard and downloadable output
+- Custom topic input — ask for exactly what you need
+- Clean, scannable format optimized for reference use
+
+KEYWORDS:
+cheatsheet generator, programming cheatsheet, AI cheatsheet, code reference, syntax guide, developer reference, coding cheatsheet, language cheatsheet, quick reference, Python cheatsheet, JavaScript cheatsheet, programming guide, AI code helper, developer tool, study aid

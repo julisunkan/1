@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NDA Generator — DevTools</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/web.css">
+  <style>
+    :root{--bg:#0d0203;--surface:#180405;--border:#2e0608;--text:#fecaca;--text-muted:#7a2f35;--accent:#ef4444;--accent-glow:rgba(239,68,68,0.08);--btn-text:#fff;--input-bg:#100203;--nav-bg:#0d0203;}
+    body{background:var(--bg);color:var(--text);}
+    .page-wrap{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:calc(100vh - 60px);}
+    .left-col{padding:32px;border-right:1px solid var(--border);overflow-y:auto;}
+    .right-col{padding:32px;overflow-y:auto;background:var(--surface);}
+    .step-nav{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .step-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:transparent;transition:all .15s;}
+    .step-tab.active{background:var(--accent);color:#fff;}
+    .nda-doc{font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:2;color:#f0e0e0;white-space:pre-wrap;}
+    .nda-doc-section{font-size:13px;font-weight:700;letter-spacing:.04em;color:#fecaca;margin:18px 0 6px;display:block;text-transform:uppercase;}
+    .nda-preview{font-family:'EB Garamond',Georgia,serif;font-size:15px;line-height:1.95;color:#e8d0d0;white-space:pre-wrap;}
+    .signed-banner{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:20px;text-align:center;margin-top:16px;}
+    @media(max-width:900px){.page-wrap{grid-template-columns:1fr}.left-col{border-right:none;border-bottom:1px solid var(--border);}}
+    input,select,textarea{background:var(--input-bg);border-color:var(--border);}
+    .field-error{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.15)!important;}
+    .field-msg{font-size:11px;color:#f87171;margin-top:4px;display:none;}
+    .field-msg.show{display:block;}
+    .inline-msg{display:none;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:16px;}
+    .inline-msg.error{background:#200303;border:1px solid rgba(239,68,68,0.5);color:#f87171;}
+    .inline-msg.success{background:#051a08;border:1px solid rgba(34,197,94,0.4);color:#4ade80;}
+    .inline-msg.warn{background:#1a0f00;border:1px solid rgba(251,191,36,0.4);color:#fbbf24;}
+    .inline-msg i{flex-shrink:0;}
+    .inline-msg-close{margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;opacity:0.6;padding:0;font-size:12px;}
+    .inline-msg-close:hover{opacity:1;}
+  </style>
+</head>
+<body>
+<nav class="topnav" style="background:var(--nav-bg);border-bottom:1px solid var(--border);">
+  <div class="topnav-brand" style="color:var(--accent);">
+    <i class="fas fa-file-contract"></i> NDA Generator
+  </div>
+  <div class="topnav-spacer"></div>
+  <span style="font-size:12px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:6px;">AI-Powered · E-Sign Ready</span>
+</nav>
+
+<div class="page-wrap">
+  <!-- Left: Form + Controls -->
+  <div class="left-col">
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:6px;">Non-Disclosure Agreement</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Fill in the details and generate a legally sound NDA instantly using AI.</p>
+
+    <div id="inlineMsg" class="inline-msg"></div>
+    <div class="step-nav">
+      <button class="step-tab active" id="tab1" onclick="showTab(1)">1 · Details</button>
+      <button class="step-tab" id="tab2" onclick="showTab(2)">2 · Review</button>
+      <button class="step-tab" id="tab3" onclick="showTab(3)">3 · Sign</button>
+    </div>
+
+    <!-- Tab 1 -->
+    <div id="tab1content">
+      <div class="field"><label>Disclosing Party (Party A)</label><input id="partyA" placeholder="Full name or company name"><div class="field-msg" id="err-partyA">This field is required</div></div>
+      <div class="field"><label>Receiving Party (Party B)</label><input id="partyB" placeholder="Full name or company name"><div class="field-msg" id="err-partyB">This field is required</div></div>
+      <div class="field"><label>Purpose of Disclosure</label><textarea id="purpose" rows="4" placeholder="Describe what confidential information will be shared and why…"></textarea><div class="field-msg" id="err-purpose">Please describe the purpose</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="field"><label>Duration</label>
+          <select id="duration">
+            <option value="1 year">1 Year</option>
+            <option value="2 years" selected>2 Years</option>
+            <option value="3 years">3 Years</option>
+            <option value="5 years">5 Years</option>
+            <option value="indefinitely">Indefinitely</option>
+          </select>
+        </div>
+        <div class="field"><label>Jurisdiction</label><input id="jurisdiction" placeholder="e.g. California, USA"></div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="genBtn" onclick="generateNDA()">
+        <i class="fas fa-magic"></i> Generate NDA
+      </button>
+    </div>
+
+    <!-- Tab 2 -->
+    <div id="tab2content" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="showTab(1)"><i class="fas fa-arrow-left"></i> Edit Details</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyNDA()"><i class="fas fa-copy"></i> Copy Text</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadNDA()"><i class="fas fa-download"></i> Download .txt</button>
+        <button class="btn btn-ghost btn-sm" id="pdfBtn" onclick="downloadPDF()" style="display:none;"><i class="fas fa-file-pdf"></i> Download PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="showTab(3)" style="margin-left:auto;"><i class="fas fa-pen-nib"></i> Proceed to Sign</button>
+      </div>
+      <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:24px;max-height:55vh;overflow-y:auto;">
+        <div class="nda-doc" id="ndaText"></div>
+      </div>
+    </div>
+
+    <!-- Tab 3 -->
+    <div id="tab3content" style="display:none;">
+      <div class="field">
+        <label>Party A — <span style="color:var(--accent);">Sign Here</span></label>
+        <div class="sig-container" style="border-color:var(--border);">
+          <canvas id="sigA" height="110" style="cursor:crosshair;"></canvas>
+          <div class="sig-toolbar">
+            <span style="font-size:12px;color:var(--text-muted);" id="sigAStatus">Not yet signed</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost btn-sm" onclick="clearSig('A')">Clear</button>
+              <button class="btn btn-primary btn-sm" onclick="signParty('a')"><i class="fas fa-check"></i> Sign</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:16px;">
+        <label>Party B — <span style="color:var(--accent);">Sign Here</span></label>
+        <div class="sig-container" style="border-color:var(--border);">
+          <canvas id="sigB" height="110" style="cursor:crosshair;"></canvas>
+          <div class="sig-toolbar">
+            <span style="font-size:12px;color:var(--text-muted);" id="sigBStatus">Not yet signed</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost btn-sm" onclick="clearSig('B')">Clear</button>
+              <button class="btn btn-primary btn-sm" onclick="signParty('b')"><i class="fas fa-check"></i> Sign</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="signedBanner" class="signed-banner" style="display:none;">
+        <div style="font-size:32px;">✅</div>
+        <div style="font-size:16px;font-weight:700;color:#4ade80;margin-top:8px;">NDA Fully Executed</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="signedDate"></div>
+        <button class="btn btn-primary btn-sm" onclick="downloadPDF()" style="margin-top:14px;"><i class="fas fa-file-pdf"></i> Download Signed PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Preview / History -->
+  <div class="right-col">
+    <div id="previewEmpty" style="text-align:center;padding:80px 20px;color:var(--text-muted);">
+      <i class="fas fa-file-contract" style="font-size:60px;display:block;margin-bottom:20px;opacity:0.15;"></i>
+      <p style="font-size:16px;font-weight:600;">Your NDA will appear here</p>
+      <p style="font-size:13px;margin-top:8px;opacity:0.6;">Fill the form and click Generate</p>
+    </div>
+    <div id="previewDoc" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;">Live Preview</h3>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <div class="nda-preview" id="previewNdaText"></div>
+    </div>
+
+    {% if docs %}
+    <div style="margin-top:40px;">
+      <div class="section-label"><i class="fas fa-folder-open"></i> Saved NDAs</div>
+      {% for doc in docs %}
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;">{{ doc.party_a }} ↔ {{ doc.party_b }}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ doc.created_at.strftime('%B %d, %Y') }} · {% if doc.signed_at %}<span style="color:#4ade80;font-weight:600;">✓ Signed</span>{% else %}Pending signatures{% endif %}</div>
+          </div>
+          <a href="/ndagen/pdf/{{ doc.id }}" class="btn btn-ghost btn-sm" title="Download PDF" style="flex-shrink:0;"><i class="fas fa-file-pdf"></i></a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+function showMsg(msg, type='error') {
+  const icons = {error:'fa-circle-xmark', success:'fa-circle-check', warn:'fa-triangle-exclamation'};
+  const el = document.getElementById('inlineMsg');
+  el.className = `inline-msg ${type}`;
+  el.innerHTML = `<i class="fas ${icons[type]||icons.error}"></i><span>${msg}</span><button class="inline-msg-close" onclick="this.parentElement.style.display='none'"><i class="fas fa-times"></i></button>`;
+  el.style.display = 'flex';
+  if (el._timer) clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+function setFieldError(id, errId, hasError) {
+  const el = document.getElementById(id);
+  const msg = document.getElementById(errId);
+  el.classList.toggle('field-error', hasError);
+  msg.classList.toggle('show', hasError);
+  if(hasError) el.addEventListener('input', ()=>setFieldError(id, errId, false), {once:true});
+}
+
+let currentDocId=null, sigPadA, sigPadB;
+document.addEventListener('DOMContentLoaded',()=>{
+  function initSig(id){
+    const c=document.getElementById(id);
+    c.width=c.offsetWidth||560;
+    return new SignaturePad(c,{backgroundColor:'rgba(255,255,255,1)',penColor:'#1a1a1a'});
+  }
+  sigPadA=initSig('sigA'); sigPadB=initSig('sigB');
+});
+
+function showTab(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('tab'+i+'content').style.display=i===n?'':'none';
+    document.getElementById('tab'+i).classList.toggle('active',i===n);
+  });
+}
+
+async function generateNDA(){
+  const pA=document.getElementById('partyA').value.trim();
+  const pB=document.getElementById('partyB').value.trim();
+  const purpose=document.getElementById('purpose').value.trim();
+  let valid=true;
+  if(!pA){setFieldError('partyA','err-partyA',true);valid=false;}
+  if(!pB){setFieldError('partyB','err-partyB',true);valid=false;}
+  if(!purpose){setFieldError('purpose','err-purpose',true);valid=false;}
+  if(!valid){showMsg('Please fill all required fields','warn');return;}
+  const btn=document.getElementById('genBtn');
+  btn.innerHTML='<span class="spinner"></span> Generating with AI…';btn.disabled=true;
+  try{
+    const r=await fetch('/ndagen/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({party_a:pA,party_b:pB,purpose,duration:document.getElementById('duration').value,jurisdiction:document.getElementById('jurisdiction').value})});
+    const d=await r.json();
+    if(d.error){showMsg(d.error,'error');return;}
+    currentDocId=d.id;
+    document.getElementById('ndaText').textContent=d.content;
+    document.getElementById('previewNdaText').textContent=d.content;
+    document.getElementById('previewEmpty').style.display='none';
+    document.getElementById('previewDoc').style.display='block';
+    document.getElementById('pdfBtn').style.display='';
+    showTab(2);
+  }catch(e){showMsg(e.message,'error');}
+  finally{btn.innerHTML='<i class="fas fa-magic"></i> Generate NDA';btn.disabled=false;}
+}
+function copyNDA(){
+  navigator.clipboard.writeText(document.getElementById('ndaText').textContent).then(()=>{
+    showMsg('NDA text copied to clipboard!','success');
+    const btn=document.querySelector('[onclick="copyNDA()"]');
+    if(btn){const o=btn.innerHTML;btn.innerHTML='<i class="fas fa-check"></i> Copied';setTimeout(()=>{btn.innerHTML=o;},2000);}
+  });
+}
+function downloadNDA(){if(!currentDocId){showMsg('Generate an NDA first','warn');return;}window.location.href='/ndagen/txt/'+currentDocId;}
+function downloadPDF(){if(!currentDocId){showMsg('Generate an NDA first','warn');return;}window.location.href='/ndagen/pdf/'+currentDocId;}
+function clearSig(p){p==='A'?sigPadA.clear():sigPadB.clear();}
+async function signParty(p){
+  const pad=p==='a'?sigPadA:sigPadB;
+  const canvasId='sig'+(p==='a'?'A':'B');
+  if(pad.isEmpty()){
+    document.getElementById(canvasId).style.outline='2px solid #ef4444';
+    setTimeout(()=>{document.getElementById(canvasId).style.outline='';},2000);
+    showMsg('Please draw your signature first','warn');return;
+  }
+  if(!currentDocId){showMsg('Generate an NDA first','warn');return;}
+  const r=await fetch(`/ndagen/sign/${currentDocId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({party:p,signature:pad.toDataURL()})});
+  const d=await r.json();
+  if(d.success){
+    const el=document.getElementById('sig'+(p==='a'?'A':'B')+'Status');
+    el.textContent='✓ Signed'; el.style.color='#4ade80';
+    showMsg(`Party ${p.toUpperCase()} signature recorded`,'success');
+    if(d.fully_signed){document.getElementById('signedBanner').style.display='block';document.getElementById('signedDate').textContent='Executed on '+new Date().toLocaleDateString();showMsg('NDA fully executed by both parties! ✓','success');}
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+APP: Admin Panel
+ROUTE: /admin
+
+DESCRIPTION:
+Admin Panel is a secure, password-protected control center for managing the DevTools Suite. Monitor all tool activity, review usage logs across File Renamer, Cheatsheet Generator, NDA Generator, Responsive Layout Tester, and Web Screenshot, and configure application-wide settings — all from a single, centralized dashboard.
+
+FEATURES:
+- Secure login with session-based authentication
+- Unified dashboard showing activity across all tools
+- View, search, and manage records from every app module
+- Usage statistics and recent activity log
+- Application settings and configuration management
+- Database record viewer for NDAs, screenshots, cheatsheets, and rename jobs
+- Session timeout and logout protection
+- Clean, dark-themed admin interface consistent with the app suite
+
+KEYWORDS:
+admin panel, admin dashboard, control panel, app management, usage monitoring, secure login, database viewer, activity log, application settings, backend panel, developer admin, content management, tool management, session auth, DevTools admin

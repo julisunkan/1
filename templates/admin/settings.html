@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Settings — DevTools</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/web.css">
+  <style>
+    :root{--bg:#0b0800;--surface:#160f00;--border:#2a1f00;--text:#fde68a;--text-muted:#6b4c10;--accent:#d97706;--accent-glow:rgba(217,119,6,0.08);--btn-text:#000;--input-bg:#0d0900;--nav-bg:#0b0800;}
+    body{background:var(--bg);color:var(--text);}
+    .admin-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
+    .sidebar{background:var(--nav-bg);border-right:1px solid var(--border);padding:20px 12px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
+    .content{padding:32px;max-width:720px;overflow-y:auto;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);transition:all .15s;margin:1px 0;text-decoration:none;}
+    .nav-item:hover,.nav-item.active{background:rgba(217,119,6,0.1);color:var(--accent);}
+    .nav-item i{width:16px;text-align:center;}
+    .nav-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--border);filter:brightness(4);padding:12px 12px 4px;}
+    .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px;}
+    .settings-section h3{font-size:15px;font-weight:700;margin-bottom:4px;}
+    .settings-section p{font-size:12px;color:var(--text-muted);margin-bottom:20px;}
+    input,select{background:var(--input-bg);border-color:var(--border);}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+    .pwd-wrap{position:relative;}
+    .pwd-wrap input{padding-right:44px;}
+    .eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;}
+    @media(max-width:900px){.admin-layout{grid-template-columns:1fr}.sidebar{position:static;height:auto;}}
+  </style>
+</head>
+<body>
+<nav class="topnav" style="background:var(--nav-bg);border-bottom:1px solid var(--border);">
+  <div class="topnav-brand" style="color:var(--accent);">
+    <i class="fas fa-shield-alt"></i> Admin Panel
+  </div>
+  <div class="topnav-spacer"></div>
+  <a href="/admin" class="btn btn-ghost btn-sm" style="color:var(--text-muted);"><i class="fas fa-arrow-left"></i> Dashboard</a>
+  <a href="/admin/logout" class="btn btn-ghost btn-sm" style="color:var(--text-muted);margin-left:8px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</nav>
+
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="nav-label">Navigation</div>
+    <a href="/admin" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="/admin/settings" class="nav-item active"><i class="fas fa-key"></i> API & Settings</a>
+    <div class="nav-label">Apps</div>
+    <a href="/rename" class="nav-item" target="_blank"><i class="fas fa-tags"></i> File Renamer</a>
+    <a href="/programcheat" class="nav-item" target="_blank"><i class="fas fa-code"></i> Cheatsheet</a>
+    <a href="/ndagen" class="nav-item" target="_blank"><i class="fas fa-file-contract"></i> NDA Generator</a>
+    <a href="/reslayout" class="nav-item" target="_blank"><i class="fas fa-desktop"></i> Layout Tester</a>
+    <a href="/webscreen" class="nav-item" target="_blank"><i class="fas fa-camera"></i> Screenshot</a>
+    <div class="nav-label">Account</div>
+    <a href="/admin/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </aside>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Settings</h1>
+      <p>Configure API keys, security, and appearance.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'success' if cat == 'success' else 'error' }}"><i class="fas fa-check-circle"></i> {{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <!-- AI -->
+      <div class="settings-section">
+        <h3><i class="fas fa-robot" style="color:var(--accent);margin-right:8px;"></i>AI Configuration</h3>
+        <p>Required for Cheatsheet Generator and NDA Generator. Get a free key at <a href="https://console.groq.com" target="_blank" style="color:var(--accent);">console.groq.com</a>.</p>
+        <div class="field">
+          <label>Groq API Key</label>
+          <div class="pwd-wrap">
+            <input type="password" id="groqKey" name="GROQ_API_KEY" placeholder="gsk_…" value="{{ settings.get('GROQ_API_KEY','') }}" autocomplete="off">
+            <button type="button" class="eye-btn" onclick="togglePwd('groqKey',this)"><i class="fas fa-eye"></i></button>
+          </div>
+          {% if settings.get('GROQ_API_KEY') %}
+          <div style="font-size:11px;color:#4ade80;margin-top:6px;"><i class="fas fa-check-circle"></i> Key is configured — AI features active</div>
+          {% else %}
+          <div style="font-size:11px;color:#f87171;margin-top:6px;"><i class="fas fa-exclamation-triangle"></i> Not set — Cheatsheet & NDA won't generate content</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="settings-section">
+        <h3><i class="fas fa-lock" style="color:var(--accent);margin-right:8px;"></i>Security</h3>
+        <p>Change the admin password. You'll need to use the new password on your next login.</p>
+        <div class="field">
+          <label>Admin Password</label>
+          <div class="pwd-wrap">
+            <input type="password" id="adminPwd" name="ADMIN_PASSWORD" placeholder="New password" value="{{ settings.get('ADMIN_PASSWORD','admin123') }}" autocomplete="new-password">
+            <button type="button" class="eye-btn" onclick="togglePwd('adminPwd',this)"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="settings-section">
+        <h3><i class="fas fa-palette" style="color:var(--accent);margin-right:8px;"></i>General</h3>
+        <p>Customize the app name displayed across the suite.</p>
+        <div class="field">
+          <label>App Name</label>
+          <input type="text" name="APP_NAME" value="{{ settings.get('APP_NAME','DevTools Suite') }}" placeholder="App Name">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="fas fa-save"></i> Save All Settings
+      </button>
+    </form>
+  </main>
+</div>
+
+<script>
+function togglePwd(id, btn) {
+  const el = document.getElementById(id);
+  const show = el.type === 'text';
+  el.type = show ? 'password' : 'text';
+  btn.innerHTML = show ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+}
+</script>
+</body>
+</html>

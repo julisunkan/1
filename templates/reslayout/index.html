@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Tester — DevTools</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/web.css">
+  <style>
+    :root{--bg:#09080a;--surface:#12101a;--border:#221f30;--text:#fdf4ff;--text-muted:#6b5c7a;--accent:#eab308;--accent-glow:rgba(234,179,8,0.08);--btn-text:#000;--input-bg:#0d0b12;--nav-bg:#0c0b10;}
+    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+    .url-bar{padding:14px 24px;background:var(--nav-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+    .url-bar input{background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 16px;font-size:14px;color:var(--text);flex:1;outline:none;}
+    .url-bar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+    .device-bar{display:flex;align-items:center;gap:8px;padding:10px 24px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+    .device-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);color:var(--text-muted);transition:all .15s;white-space:nowrap;}
+    .device-btn:hover,.device-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
+    .preview-area{flex:1;background:#1a1520;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px;}
+    .frame-wrap{background:#fff;box-shadow:0 8px 40px rgba(0,0,0,0.6);border-radius:4px;overflow:hidden;transition:all .3s;}
+    .frame-wrap iframe{border:none;display:block;}
+    .size-badge{font-size:11px;color:var(--accent);font-weight:700;font-family:monospace;}
+    .custom-row{display:flex;align-items:center;gap:8px;}
+    .custom-row input{background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;width:80px;outline:none;}
+    .custom-row input:focus{border-color:var(--accent);}
+    #emptyFrame{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;color:var(--text-muted);}
+  </style>
+</head>
+<body>
+<nav class="topnav" style="background:var(--nav-bg);border-bottom:1px solid var(--border);">
+  <div class="topnav-brand" style="color:var(--accent);">
+    <i class="fas fa-desktop"></i> Layout Tester
+  </div>
+  <div class="topnav-spacer"></div>
+  <span class="size-badge" id="curSize">No preview</span>
+</nav>
+
+<!-- URL Bar -->
+<div class="url-bar">
+  <i class="fas fa-globe" style="color:var(--text-muted);"></i>
+  <input id="urlInput" type="url" placeholder="https://example.com" onkeypress="if(event.key==='Enter')loadPreview()">
+  <button class="btn btn-primary" onclick="loadPreview()"><i class="fas fa-play"></i> Preview</button>
+  <button class="btn btn-ghost btn-sm" onclick="reload()"><i class="fas fa-redo"></i></button>
+</div>
+
+<!-- Device Bar -->
+<div class="device-bar">
+  {% for d in devices %}
+  <button class="device-btn {% if loop.first %}active{% endif %}"
+    onclick="setDevice({{d.width}},{{d.height}},'{{d.name}}',this)"
+    data-w="{{d.width}}" data-h="{{d.height}}">
+    <i class="fas {{d.icon}}"></i> {{d.name}}
+    {% if d.width %}<span style="opacity:0.5;font-size:10px;">{{d.width}}px</span>{% endif %}
+  </button>
+  {% endfor %}
+  <div class="custom-row" id="customRow" style="display:none;">
+    <input id="cw" type="number" placeholder="W" value="800">
+    <span style="color:var(--text-muted);">×</span>
+    <input id="ch" type="number" placeholder="H" value="600">
+    <button class="btn btn-primary btn-sm" onclick="applyCustom()">Set</button>
+  </div>
+</div>
+
+<!-- Preview -->
+<div class="preview-area" id="previewArea">
+  <div id="emptyFrame">
+    <i class="fas fa-globe" style="font-size:64px;opacity:0.1;display:block;margin-bottom:20px;"></i>
+    <p style="font-size:18px;font-weight:600;">Enter a URL above and press Preview</p>
+    <p style="font-size:13px;margin-top:8px;opacity:0.5;">Test any website at any screen size</p>
+  </div>
+</div>
+
+<script>
+let curW=1280, curH=800, curName='Laptop 13"', curUrl='';
+function setDevice(w,h,name,btn){
+  document.querySelectorAll('.device-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  curW=w||1280; curH=h||800; curName=name;
+  document.getElementById('customRow').style.display=(name==='Custom')?'flex':'none';
+  if(curUrl) loadPreview();
+}
+function applyCustom(){
+  curW=parseInt(document.getElementById('cw').value)||800;
+  curH=parseInt(document.getElementById('ch').value)||600;
+  if(curUrl) loadPreview();
+}
+function loadPreview(){
+  let url=document.getElementById('urlInput').value.trim();
+  if(!url) return;
+  if(!url.startsWith('http')) url='https://'+url;
+  curUrl=url;
+  const proxyUrl='/reslayout/proxy?url='+encodeURIComponent(url);
+  const area=document.getElementById('previewArea');
+  const areaW=area.offsetWidth-48;
+  const scale=Math.min(1, areaW/curW);
+  const fH=curH||Math.round(curW*0.625);
+  const scaledH=Math.round(fH*scale);
+  document.getElementById('curSize').textContent=`${curName}: ${curW}×${curH||'auto'} px`;
+  area.innerHTML=`<div id="frameOuter" style="width:${curW}px;height:${fH}px;transform:scale(${scale});transform-origin:top left;background:#fff;box-shadow:0 8px 40px rgba(0,0,0,0.6);border-radius:4px;overflow:hidden;flex-shrink:0;">
+    <iframe src="${proxyUrl}" width="${curW}" height="${fH}" style="border:none;display:block;"></iframe>
+  </div>`;
+  area.style.minHeight=(scaledH+48)+'px';
+}
+function reload(){if(curUrl)loadPreview();}
+</script>
+</body>
+</html>

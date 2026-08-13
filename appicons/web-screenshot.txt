@@ -1,0 +1,19 @@
+APP: Web Screenshot
+ROUTE: /webscreen
+
+DESCRIPTION:
+Web Screenshot captures high-quality, full-page screenshots of any public website on demand. Powered by Playwright's headless browser engine, it renders pages exactly as a real browser would — with JavaScript, fonts, images, and dynamic content fully loaded. Perfect for archiving pages, generating social previews, monitoring UI changes, and documenting web content.
+
+FEATURES:
+- Full-page screenshot of any public URL
+- Headless Chromium rendering via Playwright for pixel-accurate output
+- Captures JavaScript-rendered and dynamic content
+- High-resolution PNG output
+- Configurable viewport width and device emulation
+- Screenshot history with timestamps and source URLs stored in database
+- One-click download of captured images
+- Fast capture with background processing
+- Supports single-page apps, SPAs, and complex web layouts
+
+KEYWORDS:
+web screenshot, website screenshot, full page screenshot, URL screenshot, Playwright screenshot, headless browser, page capture, screenshot tool, web archiver, site preview, social preview generator, UI screenshot, developer tool, page snapshot, website capture
