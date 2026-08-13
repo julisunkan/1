@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NDA Generator — DevTools</title>
-  <link rel="icon" href="data:,">
+  <meta name="description" content="Create, review, sign, and export professional non-disclosure agreements.">
+  <meta name="theme-color" content="#07151a">
+  <meta name="application-name" content="NDA Generator">
+  <link rel="manifest" href="/ndagen/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/pwa/icons/nda-generator-192.png">
+  <link rel="apple-touch-icon" href="/static/pwa/icons/nda-generator-192.png">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/web.css">
@@ -333,6 +338,9 @@ async function signParty(p){
     showMsg(`Party ${p.toUpperCase()} signature recorded`,'success');
     if(d.fully_signed){document.getElementById('signedBanner').style.display='block';document.getElementById('signedDate').textContent='Executed on '+new Date().toLocaleDateString();showMsg('NDA fully executed by both parties! ✓','success');}
   }
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/ndagen/sw.js',{scope:'/ndagen/'}).catch(()=>{}));
 }
 </script>
 </body>

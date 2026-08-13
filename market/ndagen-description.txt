@@ -1,0 +1,11 @@
+NDA Generator for Microsoft Store
+
+NDA Generator helps founders, consultants, agencies, freelancers, and teams create polished first drafts of non-disclosure agreements in minutes.
+
+Describe the parties, the purpose of the disclosure, the agreement duration, and the governing jurisdiction. The app uses AI to draft an organized NDA with familiar confidentiality clauses, then gives you a focused review experience before you download or sign.
+
+Review the generated text, copy it to your workflow, export a clean TXT or PDF copy, and capture signatures from both parties with the built-in signature pads. Saved agreements remain easy to find in the app's history panel.
+
+NDA Generator is designed to make a repeatable legal-document workflow faster and easier to manage. Generated content is a starting point for review and is not a substitute for advice from a qualified attorney.
+
+Keywords are included in ndagen-keywords.txt and feature copy is included in ndagen-features.txt.

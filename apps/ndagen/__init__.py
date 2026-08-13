@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, render_template, request, jsonify, Response
 from models import db, Setting, NDADocument, ContentReport
 from datetime import datetime
@@ -65,6 +66,113 @@ Format it as a proper legal document with section numbers."""
 def index():
     docs = NDADocument.query.order_by(NDADocument.created_at.desc()).limit(10).all()
     return render_template("ndagen/index.html", docs=docs)
+
+@ndagen_bp.route("/manifest.webmanifest")
+def manifest():
+    manifest_data = {
+        "name": "NDA Generator",
+        "short_name": "NDA Generator",
+        "description": "Create, review, sign, and export professional non-disclosure agreements.",
+        "start_url": "/ndagen/",
+        "scope": "/ndagen/",
+        "display": "standalone",
+        "background_color": "#07151a",
+        "theme_color": "#07151a",
+        "orientation": "portrait-primary",
+        "categories": ["business", "productivity"],
+        "icons": [
+            {
+                "src": "/static/pwa/icons/nda-generator-192.png",
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any",
+            },
+            {
+                "src": "/static/pwa/icons/nda-generator-512.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any",
+            },
+            {
+                "src": "/static/pwa/icons/nda-generator-maskable-192.png",
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "maskable",
+            },
+            {
+                "src": "/static/pwa/icons/nda-generator-maskable-512.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable",
+            },
+        ],
+    }
+    return Response(
+        json.dumps(manifest_data),
+        mimetype="application/manifest+json",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+@ndagen_bp.route("/sw.js")
+def service_worker():
+    worker = """
+const CACHE_NAME = "nda-generator-v1";
+const APP_SHELL = [
+  "/ndagen/",
+  "/static/css/web.css",
+  "/static/pwa/icons/nda-generator-192.png",
+  "/static/pwa/icons/nda-generator-512.png",
+  "/static/pwa/icons/nda-generator-maskable-192.png",
+  "/static/pwa/icons/nda-generator-maskable-512.png"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("/ndagen/", copy));
+          return response;
+        })
+        .catch(() => caches.match("/ndagen/"))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
+  );
+});
+"""
+    return Response(
+        worker,
+        mimetype="application/javascript",
+        headers={
+            "Cache-Control": "no-cache",
+            "Service-Worker-Allowed": "/ndagen/",
+        },
+    )
 
 @ndagen_bp.route("/generate", methods=["POST"])
 def generate():

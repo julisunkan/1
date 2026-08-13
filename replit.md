@@ -28,6 +28,13 @@ Preferred communication style: Simple, everyday language.
 - **Screenshots**: Playwright headless Chromium
 - **UI**: Custom mobile-first CSS — 430px max-width phone shell with status bar, bottom nav, dark theme
 
+### NDA Generator PWA
+
+The `/ndagen` tool is installable as a scoped Progressive Web App. Its manifest is served at
+`/ndagen/manifest.webmanifest`, and its service worker is served at `/ndagen/sw.js`. PWA icons
+and maskable icons live under `static/pwa/icons/`. Microsoft Store-ready copy is in
+`market/ndagen-description.txt`, `market/ndagen-features.txt`, and `market/ndagen-keywords.txt`.
+
 ## App Structure
 
 ```

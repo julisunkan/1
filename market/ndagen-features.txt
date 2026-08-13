@@ -1,0 +1,27 @@
+NDA Generator — Microsoft Store Features
+
+• AI-assisted NDA drafting
+  Turn party details, disclosure purpose, duration, and jurisdiction into a structured first draft.
+
+• Clear three-step workflow
+  Move from Details to Review to Sign without losing your place.
+
+• Review before you act
+  Read the full agreement in a dedicated preview, edit the inputs, and copy the text when needed.
+
+• TXT and PDF export
+  Download an editable plain-text copy or a polished PDF for your records and review workflow.
+
+• Built-in signature pads
+  Let Party A and Party B draw signatures directly in the app and track signing status.
+
+• Saved agreement history
+  Quickly revisit recent NDAs and download their PDF copies.
+
+• Responsive, installable PWA
+  Install NDA Generator from a supported browser and use its focused app experience on desktop, tablet, or mobile.
+
+• Content reporting
+  Flag inaccurate, unsafe, or incomplete AI-generated content for administrator review.
+
+Important: NDA Generator creates drafts for review. It does not provide legal advice or guarantee that an agreement is enforceable in a particular jurisdiction.
