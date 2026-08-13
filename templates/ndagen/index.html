@@ -3,34 +3,51 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NDA Generator — DevTools</title>
+  <link rel="icon" href="data:,">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/web.css">
   <style>
-    :root{--bg:#0d0203;--surface:#180405;--border:#2e0608;--text:#fecaca;--text-muted:#7a2f35;--accent:#ef4444;--accent-glow:rgba(239,68,68,0.08);--btn-text:#fff;--input-bg:#100203;--nav-bg:#0d0203;}
-    body{background:var(--bg);color:var(--text);}
-    .page-wrap{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:calc(100vh - 60px);}
-    .left-col{padding:32px;border-right:1px solid var(--border);overflow-y:auto;}
-    .right-col{padding:32px;overflow-y:auto;background:var(--surface);}
-    .step-nav{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-    .step-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:transparent;transition:all .15s;}
-    .step-tab.active{background:var(--accent);color:#fff;}
-    .nda-doc{font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:2;color:#f0e0e0;white-space:pre-wrap;}
-    .nda-doc-section{font-size:13px;font-weight:700;letter-spacing:.04em;color:#fecaca;margin:18px 0 6px;display:block;text-transform:uppercase;}
-    .nda-preview{font-family:'EB Garamond',Georgia,serif;font-size:15px;line-height:1.95;color:#e8d0d0;white-space:pre-wrap;}
-    .signed-banner{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:20px;text-align:center;margin-top:16px;}
-    @media(max-width:900px){.page-wrap{grid-template-columns:1fr}.left-col{border-right:none;border-bottom:1px solid var(--border);}}
+    :root{--bg:#07151a;--surface:#0d2227;--surface-2:#102d31;--border:#1c4b4c;--text:#e6f7ed;--text-muted:#8fb5ac;--accent:#2dd4bf;--blue:#38bdf8;--yellow:#facc15;--red:#fb7185;--brown:#b8794b;--accent-glow:rgba(45,212,191,.14);--btn-text:#06201f;--input-bg:#081b20;--nav-bg:#061116;}
+    body{background:radial-gradient(circle at 75% 0%,rgba(56,189,248,.12),transparent 34%),var(--bg);color:var(--text);}
+    .page-wrap{display:grid;grid-template-columns:minmax(380px, .9fr) minmax(430px,1.1fr);gap:0;min-height:calc(100vh - 60px);}
+    .left-col{padding:38px clamp(22px,4vw,52px);border-right:1px solid var(--border);overflow-y:auto;}
+    .right-col{padding:38px clamp(22px,4vw,52px);overflow-y:auto;background:linear-gradient(180deg,rgba(16,45,49,.88),rgba(7,21,26,.95));}
+    .step-nav{display:flex;gap:5px;padding:5px;margin-bottom:28px;border:1px solid var(--border);border-radius:15px;overflow:hidden;background:rgba(6,17,22,.72);}
+    .step-tab{flex:1;padding:11px 8px;text-align:center;font-size:12px;font-weight:800;color:var(--text-muted);cursor:pointer;border:none;border-radius:10px;background:transparent;transition:all .2s;}
+    .step-tab:hover{color:var(--blue);background:rgba(56,189,248,.08);}
+    .step-tab.active{background:linear-gradient(135deg,var(--blue),var(--accent));color:#042126;box-shadow:0 5px 16px rgba(45,212,191,.2);}
+    .nda-doc{font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:2;color:#e3f4e9;white-space:pre-wrap;}
+    .nda-doc-section{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--yellow);margin:18px 0 6px;display:block;text-transform:uppercase;}
+    .nda-preview{font-family:'EB Garamond',Georgia,serif;font-size:15px;line-height:1.95;color:#d7eee3;white-space:pre-wrap;}
+    .signed-banner{background:rgba(34,197,94,.1);border:1px solid rgba(74,222,128,.45);border-radius:14px;padding:20px;text-align:center;margin-top:16px;box-shadow:0 8px 24px rgba(34,197,94,.08);}
+    .feature-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 25px;}
+    .feature-strip span{padding:9px 8px;border:1px solid var(--border);border-radius:10px;background:rgba(13,34,39,.7);font-size:10px;text-align:center;color:var(--text-muted);font-weight:700;}
+    .feature-strip i{display:block;margin-bottom:5px;font-size:14px;}
+    .feature-strip span:nth-child(1) i{color:var(--green,#4ade80)}.feature-strip span:nth-child(2) i{color:var(--blue)}.feature-strip span:nth-child(3) i{color:var(--brown)}
+    .btn{border-radius:12px;box-shadow:0 5px 12px rgba(0,0,0,.16);transition:transform .2s,box-shadow .2s,filter .2s;}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.22);}
+    .btn-primary{background:linear-gradient(135deg,var(--blue),var(--accent));color:#06201f;}
+    .btn-outline{border-color:var(--blue);color:var(--blue);}
+    .btn-ghost{background:rgba(16,45,49,.78);border-color:var(--border);}
+    .btn-report{background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.5);color:var(--yellow);}
+    .btn-report:hover{background:rgba(250,204,21,.2);}
+    .report-modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,10,13,.8);backdrop-filter:blur(5px);}
+    .report-modal.open{display:flex;}
+    .report-card{width:min(100%,500px);background:var(--surface-2);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:0 24px 80px rgba(0,0,0,.45);}
+    .report-card h3{font-size:20px;margin-bottom:6px}.report-card p{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+    .report-card .close-report{background:transparent;border:0;color:var(--text-muted);font-size:18px;cursor:pointer}
+    @media(max-width:900px){.page-wrap{grid-template-columns:1fr}.left-col{border-right:none;border-bottom:1px solid var(--border)}.right-col{min-height:420px;}.feature-strip{margin-bottom:20px;}}
     input,select,textarea{background:var(--input-bg);border-color:var(--border);}
-    .field-error{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.15)!important;}
-    .field-msg{font-size:11px;color:#f87171;margin-top:4px;display:none;}
+    input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(56,189,248,.14);}
+    .field-error{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(251,113,133,.15)!important;}
+    .field-msg{font-size:11px;color:var(--red);margin-top:4px;display:none;}
     .field-msg.show{display:block;}
-    .inline-msg{display:none;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:16px;}
-    .inline-msg.error{background:#200303;border:1px solid rgba(239,68,68,0.5);color:#f87171;}
-    .inline-msg.success{background:#051a08;border:1px solid rgba(34,197,94,0.4);color:#4ade80;}
-    .inline-msg.warn{background:#1a0f00;border:1px solid rgba(251,191,36,0.4);color:#fbbf24;}
-    .inline-msg i{flex-shrink:0;}
-    .inline-msg-close{margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;opacity:0.6;padding:0;font-size:12px;}
-    .inline-msg-close:hover{opacity:1;}
+    .inline-msg{display:none;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:16px;}
+    .inline-msg.error{background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.5);color:var(--red);}
+    .inline-msg.success{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.4);color:#86efac;}
+    .inline-msg.warn{background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.4);color:var(--yellow);}
+    .inline-msg i{flex-shrink:0}.inline-msg-close{margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;opacity:.6;padding:0;font-size:12px}.inline-msg-close:hover{opacity:1}
   </style>
 </head>
 <body>
@@ -39,14 +56,20 @@
     <i class="fas fa-file-contract"></i> NDA Generator
   </div>
   <div class="topnav-spacer"></div>
-  <span style="font-size:12px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:6px;">AI-Powered · E-Sign Ready</span>
+  <a href="/" class="topnav-link"><i class="fas fa-th-large"></i> Suite</a>
+  <span style="font-size:12px;color:var(--blue);background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);padding:6px 12px;border-radius:20px;">AI-Powered · E-Sign Ready</span>
 </nav>
 
 <div class="page-wrap">
   <!-- Left: Form + Controls -->
   <div class="left-col">
     <h2 style="font-size:22px;font-weight:800;margin-bottom:6px;">Non-Disclosure Agreement</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Fill in the details and generate a legally sound NDA instantly using AI.</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Create a polished first draft in minutes, then review every clause before signing.</p>
+    <div class="feature-strip">
+      <span><i class="fas fa-wand-magic-sparkles"></i>AI drafted</span>
+      <span><i class="fas fa-shield-halved"></i>Review ready</span>
+      <span><i class="fas fa-pen-nib"></i>Easy signing</span>
+    </div>
 
     <div id="inlineMsg" class="inline-msg"></div>
     <div class="step-nav">
@@ -84,6 +107,7 @@
         <button class="btn btn-ghost btn-sm" onclick="copyNDA()"><i class="fas fa-copy"></i> Copy Text</button>
         <button class="btn btn-ghost btn-sm" onclick="downloadNDA()"><i class="fas fa-download"></i> Download .txt</button>
         <button class="btn btn-ghost btn-sm" id="pdfBtn" onclick="downloadPDF()" style="display:none;"><i class="fas fa-file-pdf"></i> Download PDF</button>
+        <button class="btn btn-report btn-sm" onclick="openReport(currentDocId)"><i class="fas fa-flag"></i> Report AI content</button>
         <button class="btn btn-primary btn-sm" onclick="showTab(3)" style="margin-left:auto;"><i class="fas fa-pen-nib"></i> Proceed to Sign</button>
       </div>
       <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:24px;max-height:55vh;overflow-y:auto;">
@@ -153,13 +177,44 @@
             <div style="font-size:14px;font-weight:700;">{{ doc.party_a }} ↔ {{ doc.party_b }}</div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">{{ doc.created_at.strftime('%B %d, %Y') }} · {% if doc.signed_at %}<span style="color:#4ade80;font-weight:600;">✓ Signed</span>{% else %}Pending signatures{% endif %}</div>
           </div>
-          <a href="/ndagen/pdf/{{ doc.id }}" class="btn btn-ghost btn-sm" title="Download PDF" style="flex-shrink:0;"><i class="fas fa-file-pdf"></i></a>
+           <div style="display:flex;gap:7px;flex-shrink:0;">
+             <button class="btn btn-report btn-sm" onclick="openReport({{ doc.id }})" title="Report AI content"><i class="fas fa-flag"></i></button>
+             <a href="/ndagen/pdf/{{ doc.id }}" class="btn btn-ghost btn-sm" title="Download PDF"><i class="fas fa-file-pdf"></i></a>
+           </div>
         </div>
       </div>
       {% endfor %}
     </div>
     {% endif %}
   </div>
+</div>
+
+<div id="reportModal" class="report-modal" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+  <form class="report-card" onsubmit="submitReport(event)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;">
+      <div><h3 id="reportTitle"><i class="fas fa-flag" style="color:var(--yellow);margin-right:8px;"></i>Report AI content</h3><p>Help us improve generated NDAs. An administrator will review your report.</p></div>
+      <button type="button" class="close-report" onclick="closeReport()" aria-label="Close report dialog"><i class="fas fa-times"></i></button>
+    </div>
+    <input type="hidden" id="reportDocId">
+    <div class="field">
+      <label for="reportReason">What is the concern?</label>
+      <select id="reportReason" required>
+        <option value="">Choose a reason</option>
+        <option value="inaccurate">Inaccurate or misleading</option>
+        <option value="unsafe">Unsafe or inappropriate</option>
+        <option value="missing">Missing important information</option>
+        <option value="other">Other concern</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="reportDetails">Additional details <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+      <textarea id="reportDetails" rows="4" maxlength="2000" placeholder="Tell the administrator what should be reviewed…"></textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button type="button" class="btn btn-ghost" onclick="closeReport()">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="reportSubmit"><i class="fas fa-paper-plane"></i> Send report</button>
+    </div>
+  </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -233,6 +288,33 @@ function copyNDA(){
 }
 function downloadNDA(){if(!currentDocId){showMsg('Generate an NDA first','warn');return;}window.location.href='/ndagen/txt/'+currentDocId;}
 function downloadPDF(){if(!currentDocId){showMsg('Generate an NDA first','warn');return;}window.location.href='/ndagen/pdf/'+currentDocId;}
+function openReport(docId){
+  if(!docId){showMsg('Generate an NDA before reporting it','warn');return;}
+  document.getElementById('reportDocId').value=docId;
+  document.getElementById('reportModal').classList.add('open');
+  document.getElementById('reportReason').focus();
+}
+function closeReport(){document.getElementById('reportModal').classList.remove('open');}
+async function submitReport(event){
+  event.preventDefault();
+  const btn=document.getElementById('reportSubmit');
+  btn.disabled=true;
+  try{
+    const r=await fetch('/ndagen/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      document_id:document.getElementById('reportDocId').value,
+      reason:document.getElementById('reportReason').value,
+      details:document.getElementById('reportDetails').value.trim()
+    })});
+    const d=await r.json();
+    if(!r.ok||d.error){showMsg(d.error||'Unable to send report','error');return;}
+    closeReport();
+    document.getElementById('reportReason').value='';
+    document.getElementById('reportDetails').value='';
+    showMsg(d.message,'success');
+  }catch(e){showMsg('Unable to send report right now. Please try again.','error');}
+  finally{btn.disabled=false;}
+}
+document.getElementById('reportModal').addEventListener('click',e=>{if(e.target.id==='reportModal')closeReport();});
 function clearSig(p){p==='A'?sigPadA.clear():sigPadB.clear();}
 async function signParty(p){
   const pad=p==='a'?sigPadA:sigPadB;

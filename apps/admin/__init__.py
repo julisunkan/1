@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import db, Setting, RenameJob, CheatSheet, NDADocument, Screenshot
+from models import db, Setting, RenameJob, CheatSheet, NDADocument, Screenshot, ContentReport
+from datetime import datetime
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -40,9 +41,26 @@ def dashboard():
         "cheatsheets": CheatSheet.query.count(),
         "ndas": NDADocument.query.count(),
         "screenshots": Screenshot.query.count(),
+        "pending_reports": ContentReport.query.filter_by(status="pending").count(),
     }
     settings = {s.key: s.value for s in Setting.query.all()}
-    return render_template("admin/dashboard.html", stats=stats, settings=settings)
+    reports = ContentReport.query.order_by(
+        ContentReport.status.asc(), ContentReport.created_at.desc()
+    ).limit(50).all()
+    return render_template("admin/dashboard.html", stats=stats, settings=settings, reports=reports)
+
+@admin_bp.route("/reports/<int:report_id>/<action>", methods=["POST"])
+@require_admin
+def review_report(report_id, action):
+    if action not in {"approve", "deny"}:
+        flash("Unknown report action.", "error")
+        return redirect(url_for("admin.dashboard"))
+    report = ContentReport.query.get_or_404(report_id)
+    report.status = "approved" if action == "approve" else "denied"
+    report.reviewed_at = datetime.utcnow()
+    db.session.commit()
+    flash(f"Report #{report.id} {report.status}.", "success")
+    return redirect(url_for("admin.dashboard") + "#reports")
 
 @admin_bp.route("/settings", methods=["GET", "POST"])
 @require_admin

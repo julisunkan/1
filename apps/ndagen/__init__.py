@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, Response
-from models import db, Setting, NDADocument
+from models import db, Setting, NDADocument, ContentReport
 from datetime import datetime
 import pdfkit
 import shutil
@@ -105,6 +105,38 @@ def sign(doc_id):
         doc.signed_at = datetime.utcnow()
     db.session.commit()
     return jsonify({"success": True, "fully_signed": bool(doc.signed_at)})
+
+@ndagen_bp.route("/report", methods=["POST"])
+def report_content():
+    data = request.get_json(silent=True) or {}
+    try:
+        doc_id = int(data.get("document_id", 0))
+    except (TypeError, ValueError):
+        doc_id = 0
+    reason = (data.get("reason") or "").strip()
+    details = (data.get("details") or "").strip()
+    allowed_reasons = {
+        "inaccurate": "Inaccurate or misleading",
+        "unsafe": "Unsafe or inappropriate",
+        "missing": "Missing important information",
+        "other": "Other concern",
+    }
+
+    if not doc_id or not NDADocument.query.get(doc_id):
+        return jsonify({"error": "That NDA could not be found."}), 404
+    if reason not in allowed_reasons:
+        return jsonify({"error": "Please choose a valid report reason."}), 400
+    if len(details) > 2000:
+        return jsonify({"error": "Additional details must be 2,000 characters or fewer."}), 400
+
+    report = ContentReport(
+        document_id=doc_id,
+        reason=allowed_reasons[reason],
+        details=details,
+    )
+    db.session.add(report)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Thanks — your report was sent to an administrator for review."})
 
 @ndagen_bp.route("/get/<int:doc_id>")
 def get_doc(doc_id):

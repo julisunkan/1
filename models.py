@@ -36,6 +36,17 @@ class NDADocument(db.Model):
     signed_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class ContentReport(db.Model):
+    __tablename__ = "content_reports"
+    id = db.Column(db.Integer, primary_key=True)
+    document_id = db.Column(db.Integer, db.ForeignKey("nda_documents.id"), nullable=False)
+    reason = db.Column(db.String(120), nullable=False)
+    details = db.Column(db.Text, default="")
+    status = db.Column(db.String(20), default="pending", nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_at = db.Column(db.DateTime)
+    document = db.relationship("NDADocument", backref=db.backref("reports", lazy=True))
+
 class Screenshot(db.Model):
     __tablename__ = "screenshots"
     id = db.Column(db.Integer, primary_key=True)

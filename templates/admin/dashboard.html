@@ -7,17 +7,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/web.css">
   <style>
-    :root{--bg:#0b0800;--surface:#160f00;--border:#2a1f00;--text:#fde68a;--text-muted:#6b4c10;--accent:#d97706;--accent-glow:rgba(217,119,6,0.08);--btn-text:#000;--input-bg:#0d0900;--nav-bg:#0b0800;}
+    :root{--bg:#07151a;--surface:#0d2227;--surface-2:#102d31;--border:#1c4b4c;--text:#e6f7ed;--text-muted:#8fb5ac;--accent:#facc15;--blue:#38bdf8;--green:#4ade80;--red:#fb7185;--brown:#b8794b;--accent-glow:rgba(250,204,21,.12);--btn-text:#17200a;--input-bg:#081b20;--nav-bg:#061116;}
     body{background:var(--bg);color:var(--text);}
     .admin-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
     .sidebar{background:var(--nav-bg);border-right:1px solid var(--border);padding:20px 12px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
     .content{padding:32px;overflow-y:auto;}
     .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;transition:all .15s;margin:1px 0;text-decoration:none;}
-    .nav-item:hover,.nav-item.active{background:rgba(217,119,6,0.1);color:var(--accent);}
+    .nav-item:hover,.nav-item.active{background:rgba(56,189,248,.1);color:var(--blue);}
     .nav-item i{width:16px;text-align:center;}
     .nav-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--border);filter:brightness(4);padding:12px 12px 4px;}
     .app-link{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;text-decoration:none;color:var(--text);transition:border-color .15s,transform .12s;}
-    .app-link:hover{border-color:var(--accent);transform:translateX(2px);color:var(--text);}
+    .app-link:hover{border-color:var(--blue);transform:translateX(2px);color:var(--text);}
+    .report-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:12px;}
+    .report-card.pending{border-left:4px solid var(--accent);}
+    .report-card.approved{border-left:4px solid var(--green);}
+    .report-card.denied{border-left:4px solid var(--red);opacity:.78;}
+    .report-meta{font-size:11px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .report-status{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:4px 8px;border-radius:999px;}
+    .report-status.pending{color:var(--accent);background:rgba(250,204,21,.12);}
+    .report-status.approved{color:var(--green);background:rgba(74,222,128,.12);}
+    .report-status.denied{color:var(--red);background:rgba(251,113,133,.12);}
+    .report-actions{display:flex;gap:8px;margin-top:15px;padding-top:13px;border-top:1px solid var(--border);}
+    .btn-approve{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.4);color:var(--green);}
+    .btn-deny{background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.35);color:var(--red);}
     .app-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
     @media(max-width:900px){.admin-layout{grid-template-columns:1fr}.sidebar{position:static;height:auto;}}
   </style>
@@ -35,7 +47,7 @@
 <div class="admin-layout">
   <aside class="sidebar">
     <div class="nav-label">Navigation</div>
-    <a href="/admin" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="/admin" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard {% if stats.pending_reports %}<span style="margin-left:auto;background:var(--accent);color:#17200a;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:800;">{{ stats.pending_reports }}</span>{% endif %}</a>
     <a href="/admin/settings" class="nav-item"><i class="fas fa-key"></i> API & Settings</a>
     <div class="nav-label">Apps</div>
     <a href="/rename" class="nav-item" target="_blank"><i class="fas fa-tags"></i> File Renamer</a>
@@ -59,6 +71,7 @@
       <div class="stat" style="border-left-color:#22c55e;"><div class="stat-value" style="color:#22c55e;">{{ stats.cheatsheets }}</div><div class="stat-label">Cheatsheets</div></div>
       <div class="stat" style="border-left-color:#ef4444;"><div class="stat-value" style="color:#ef4444;">{{ stats.ndas }}</div><div class="stat-label">NDAs</div></div>
       <div class="stat" style="border-left-color:#84cc16;"><div class="stat-value" style="color:#84cc16;">{{ stats.screenshots }}</div><div class="stat-label">Screenshots</div></div>
+      <div class="stat" style="border-left-color:#facc15;"><div class="stat-value" style="color:#facc15;">{{ stats.pending_reports }}</div><div class="stat-label">Open Reports</div></div>
     </div>
 
     <!-- API Key Status -->
@@ -99,6 +112,38 @@
       <i class="fas fa-external-link-alt" style="color:var(--text-muted);font-size:12px;"></i>
     </a>
     {% endfor %}
+
+    <!-- AI content moderation -->
+    <div id="reports" class="section-label" style="margin-top:34px;"><i class="fas fa-flag"></i> AI Content Reports</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:-4px 0 14px;">Review concerns submitted from the NDA Generator. Approving confirms the report needs attention; denying dismisses it.</p>
+    {% if reports %}
+      {% for report in reports %}
+      <div class="report-card {{ report.status }}">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="width:38px;height:38px;border-radius:11px;background:{% if report.status == 'pending' %}rgba(250,204,21,.12){% elif report.status == 'approved' %}rgba(74,222,128,.12){% else %}rgba(251,113,133,.1){% endif %};color:{% if report.status == 'pending' %}var(--accent){% elif report.status == 'approved' %}var(--green){% else %}var(--red){% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-flag"></i></div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">
+              <strong style="font-size:14px;">{{ report.reason }}</strong>
+              <span class="report-status {{ report.status }}">{{ report.status }}</span>
+            </div>
+            <div class="report-meta" style="margin-top:6px;"><span><i class="fas fa-file-contract"></i> {{ report.document.party_a }} ↔ {{ report.document.party_b }}</span><span>·</span><span>{{ report.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span></div>
+            {% if report.details %}<p style="font-size:13px;line-height:1.6;margin:12px 0 0;color:var(--text);">“{{ report.details }}”</p>{% endif %}
+          </div>
+        </div>
+        {% if report.status == 'pending' %}
+        <div class="report-actions">
+          <form method="POST" action="/admin/reports/{{ report.id }}/approve"><button class="btn btn-approve btn-sm" type="submit"><i class="fas fa-check"></i> Approve report</button></form>
+          <form method="POST" action="/admin/reports/{{ report.id }}/deny"><button class="btn btn-deny btn-sm" type="submit"><i class="fas fa-xmark"></i> Deny report</button></form>
+          <a href="/ndagen/pdf/{{ report.document.id }}" target="_blank" class="btn btn-ghost btn-sm" style="margin-left:auto;"><i class="fas fa-eye"></i> View NDA</a>
+        </div>
+        {% elif report.reviewed_at %}
+        <div class="report-meta" style="margin-top:12px;">Reviewed {{ report.reviewed_at.strftime('%b %d, %Y at %I:%M %p') }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="card" style="text-align:center;padding:30px;color:var(--text-muted);"><i class="fas fa-circle-check" style="font-size:25px;color:var(--green);margin-bottom:10px;"></i><p style="font-size:13px;">No AI content reports yet.</p></div>
+    {% endif %}
   </main>
 </div>
 </body>
